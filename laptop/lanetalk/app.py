@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 
 from lanetalk.camera import CameraStream
+from lanetalk.coach import CoachWorker
 from lanetalk.detector import (
     LaneDetector,
     LaneValidityConfig,
@@ -78,6 +79,7 @@ def main(argv: list[str] | None = None) -> None:
     object_detector = ObjectDetector()
     lane_config = LaneValidityConfig(roi_vertices=args.lane_roi) if args.lane_roi else LaneValidityConfig()
     lane_detector = LaneDetector(config=lane_config)
+    coach = CoachWorker()
     frame_count = 0
     fps = 0.0
     frame_period_ms = 1000.0 / 30.0
@@ -163,6 +165,7 @@ def main(argv: list[str] | None = None) -> None:
                         for event in lane_result.events:
                             print(_event_text(event), flush=True)
                             visible_events.append(event)
+                            coach.submit(event)
                             lane_event_count += 1
 
                         object_detector.submit(frame, frame_count, frame_period_ms)
@@ -179,6 +182,7 @@ def main(argv: list[str] | None = None) -> None:
                     for event in object_detector.drain_events():
                         print(_event_text(event), flush=True)
                         visible_events.append(event)
+                        coach.submit(event)
                         object_event_count += 1
 
                     now_wall = time.time()
@@ -231,6 +235,9 @@ def main(argv: list[str] | None = None) -> None:
                 camera.close()
     finally:
         object_detector.close()
+        for event in object_detector.drain_events():
+            coach.submit(event)
+        coach.close()
         cv2.destroyAllWindows()
 
     object_snapshot = object_detector.snapshot()
