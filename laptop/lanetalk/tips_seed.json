@@ -1,0 +1,18 @@
+[
+  {"kind": "lane_drift", "text": "Drifting from lane center. Ease back toward the middle."},
+  {"kind": "lane_drift", "match": {"direction": "left"}, "text": "Drifting left. Steer gently back to center."},
+  {"kind": "lane_drift", "match": {"direction": "right"}, "text": "Drifting right. Steer gently back to center."},
+  {"kind": "lane_drift", "text": "Use small, smooth corrections."},
+
+  {"kind": "pedestrian_detected", "text": "Pedestrian ahead. Watch your path."},
+  {"kind": "pedestrian_detected", "text": "Be ready to slow down."},
+  {"kind": "pedestrian_detected", "text": "Give pedestrians extra space."},
+
+  {"kind": "vehicle_detected", "text": "Vehicle ahead. Keep a safe following distance."},
+  {"kind": "vehicle_detected", "match": {"class": "car"}, "text": "Car ahead. Keep a safe gap."},
+  {"kind": "vehicle_detected", "match": {"class": "truck"}, "text": "Truck ahead. Leave extra room."},
+  {"kind": "vehicle_detected", "match": {"class": "bus"}, "text": "Bus ahead. Watch for sudden stops."},
+  {"kind": "vehicle_detected", "match": {"class": "motorcycle"}, "text": "Motorcycle nearby. Check your blind spots."},
+  {"kind": "vehicle_detected", "match": {"class": "bicycle"}, "text": "Cyclist ahead. Give them room."},
+  {"kind": "vehicle_detected", "text": "Stay alert to traffic around you."}
+]
