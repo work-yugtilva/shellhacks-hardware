@@ -1,0 +1,10 @@
+.DS_Store
+.env
+**/__pycache__/
+*.py[cod]
+.venv/
+venv/
+**/.venv/
+receipts/
+review-receipts/
+firmware/CameraWebServer/*.bak
