@@ -34,17 +34,8 @@ def get_ollama_model() -> str:
 
 
 def get_ollama_endpoint() -> str:
-    """Return the full Ollama API endpoint."""
-    url = (
-        os.environ.get("OLLAMA_URL")
-        or os.environ.get("OLLAMA_HOST")
-        or "http://127.0.0.1:11434"
-    ).strip().rstrip("/")
-    if not url.startswith("http://") and not url.startswith("https://"):
-        url = f"http://{url}"
-    if url.endswith("/api/generate") or url.endswith("/api/chat"):
-        return url
-    return f"{url}/api/generate"
+    """Return the local Ollama endpoint; remote hosts are not supported."""
+    return "http://127.0.0.1:11434/api/generate"
 
 
 # Module-level variable for tests and inspectability
@@ -69,7 +60,8 @@ def coach_line(event: Event, timeout: float = OLLAMA_TIMEOUT_SECONDS) -> str:
         return ""
 
     model = get_ollama_model()
-    if "cloud" in model.casefold():
+    normalized_model = model.casefold()
+    if "cloud" in normalized_model:
         print("[coach] Cloud Ollama models are disabled; using retrieved tip.", flush=True)
         return tips[0]
 
@@ -77,29 +69,13 @@ def coach_line(event: Event, timeout: float = OLLAMA_TIMEOUT_SECONDS) -> str:
     prompt_text = _prompt(event, tips)
 
     try:
-        if endpoint.endswith("/api/chat"):
-            payload = {
-                "model": model,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a calm in-car driving coach. Use the event and reference tips "
-                            "to give one short spoken sentence of at most 12 words. No preamble or quotes."
-                        ),
-                    },
-                    {"role": "user", "content": prompt_text},
-                ],
-                "stream": False,
-                "options": {"temperature": 0.2, "num_predict": 40},
-            }
-        else:
-            payload = {
-                "model": model,
-                "prompt": prompt_text,
-                "stream": False,
-                "options": {"temperature": 0.2, "num_predict": 40},
-            }
+        payload = {
+            "model": model,
+            "prompt": prompt_text,
+            "stream": False,
+            "think": False,
+            "options": {"temperature": 0.2, "num_predict": 40},
+        }
 
         response = requests.post(
             endpoint,
@@ -117,7 +93,9 @@ def coach_line(event: Event, timeout: float = OLLAMA_TIMEOUT_SECONDS) -> str:
                 raw_text = data["message"].get("content", "")
 
         lines = raw_text.strip().splitlines() if raw_text else []
-        text = lines[0].strip().strip('"').strip() if lines else ""
+        text = " ".join(lines[0].strip().strip('"').split()) if lines else ""
+        if len(text.split()) > 12:
+            text = ""
     except (requests.RequestException, ValueError, AttributeError, TypeError) as exc:
         print(f"[coach] Ollama unavailable, using tip: {exc}", flush=True)
         text = ""
